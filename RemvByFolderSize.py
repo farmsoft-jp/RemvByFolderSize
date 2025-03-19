@@ -5,13 +5,14 @@
 import os       # OSに依存しているさまざまな機能を利用するためのモジュール
 import glob     # 引数に指定されたパターンにマッチするファイルパス名を取得
 import math     # C標準で定義された数学関数へのアクセスを取得
+
 # ---------------------------------------------------------------------------
 # 設定
 # ---------------------------------------------------------------------------
 SIZE = 25*1024*1024*1024    # 最大フォルダサイズ（byte）
-TYPES = ('*')               # 削除対象とするファイル拡張子を指定
-                            # ex) TYPES = ('mp4', 'png')    ⇒ *.mp4 *.png のみ削除対象とする
-                            # ex) TYPES = ('*')             ⇒ 指定なし
+TYPES = '*'                 # 削除対象とするファイル拡張子を指定
+                            # ex) TYPES = 'mp4', 'png'  ⇒ *.mp4 *.png のみ削除対象とする
+                            # ex) TYPES = '*'           ⇒ 指定なし
 # ---------------------------------------------------------------------------
 # フォルダサイズを算出する関数
 def get_dir_size(path='.'):
@@ -32,33 +33,33 @@ def convert_size(size):
     return f"{size} {units[i]}"
 # ---------------------------------------------------------------------------
 def remv():
-    PATH = os.path.dirname(__file__) + '\\'     # 本実行スクリプトの絶対パスを取得
-    SCRIPTFILE = __file__                       # 本実行スクリプトの絶対パス＋ファイル名を取得
-    fosize = get_dir_size(PATH)                 # フォルダサイズ算出
+    path = os.path.dirname(__file__) + '\\'     # 本実行スクリプトの絶対パスを取得
+    script_path = __file__                      # 本実行スクリプトの絶対パス＋ファイル名を取得
+    folder_size = get_dir_size(path)            # フォルダサイズ算出
 
     # フォルダサイズが最大フォルダサイズより小さい場合は終了
-    if fosize <= SIZE:
-        print(f'現在のフォルダサイズは[{convert_size(fosize)}]です。')
+    if folder_size <= SIZE:
+        print(f'現在のフォルダサイズは[{convert_size(folder_size)}]です。')
         return
     # 削除するサイズを計算
-    rsize = fosize - SIZE
+    rsize = folder_size - SIZE
 
     # フォルダ内にある対象拡張子のファイル一覧を取得
     files = []
     for t in TYPES:
-        files += glob.glob(PATH + '*' + t)
+        files += glob.glob(path + '*' + t)
 
     # ファイル名と作成日時（エポック秒）の2次元リストを作成
     # [['ファイル名', 作成日時（エポック秒）],['ファイル名', 作成日時（エポック秒）],...]
     flist = []
     for file in files:
         # 本実行スクリプトは除外
-        if file == SCRIPTFILE:
+        if file == script_path:
             continue
         # ファイルリストに['ファイル名', 作成日時（エポック秒）]を追加
-        fname = os.path.basename(file)
-        ctime = os.path.getctime(file)
-        flist.append([fname, ctime])
+        f_name = os.path.basename(file)
+        ctime  = os.path.getctime(file)
+        flist.append([f_name, ctime])
 
     # ファイルリストを要素２つ目の作成日時（エポック秒）で昇順ソート
     flist.sort(key=lambda x: x[1])
@@ -67,10 +68,11 @@ def remv():
     # 削除するファイルを特定
     total = 0
     lv = []
+    i = 0
     for i in range(len(flist)):
         # フォルダは除外しファイルのみ対象
-        if os.path.isfile(PATH + flist[i][0]):
-            total += os.path.getsize(PATH + flist[i][0])
+        if os.path.isfile(path + flist[i][0]):
+            total += os.path.getsize(path + flist[i][0])
             lv.append(i)
             if rsize <= total:
                 break
@@ -78,10 +80,10 @@ def remv():
 
     # 特定したファイルを削除
     for i in range(len(lv)):
-        os.remove(PATH + flist[lv[i]][0])
+        os.remove(path + flist[lv[i]][0])
         print(f'削除したファイル名：{flist[lv[i]][0]}')
 
-    print(f'現在のフォルダサイズは[{convert_size(fosize-total)}]です。')
+    print(f'現在のフォルダサイズは[{convert_size(folder_size-total)}]です。')
 # ---------------------------------------------------------------------------
 if __name__=='__main__':
     remv()
