@@ -48,6 +48,9 @@ def remv():
     files = []
     for t in TYPES:
         files += glob.glob(path + '*' + t)
+    if len(files) == 0:
+        print(f'現在のフォルダサイズは[{convert_size(folder_size)}]です。')
+        return
 
     # ファイル名と作成日時（エポック秒）の2次元リストを作成
     # [['ファイル名', 作成日時（エポック秒）],['ファイル名', 作成日時（エポック秒）],...]
